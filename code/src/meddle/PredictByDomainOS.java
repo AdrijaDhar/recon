@@ -16,7 +16,7 @@
      along with this program; if not, write to the Free Software
      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
- */
+ 
 package meddle;
 
 import java.io.*;
@@ -110,7 +110,7 @@ public class PredictByDomainOS {
 		return true;
 	}
 
-	/**
+	
 	 * Read from a JSON file that has a list of flows and predict on each of
 	 * them.
 	 *
@@ -119,7 +119,7 @@ public class PredictByDomainOS {
 	 *            be sent to any host; prerequesites: assigned with proper
 	 *            package name.
 	 *
-	 * */
+	 * 
 	@SuppressWarnings("unchecked")
 	public static int predictJSONFile(String flowJSONFilePath,
 			String classifierSelected) {
@@ -287,4 +287,53 @@ public class PredictByDomainOS {
 		System.out.println(predictResult);
 	}
 
+}**/
+// Import statements
+
+public class PredictByDomainOS {
+
+    // Existing code...
+
+    public static void main(String[] args) {
+        init("J48");
+        predictJSONFile("data/domain_os/aax-us-east.amazon-adsystem.com_android.json", "J48");
+    }
+
+    // Existing code...
+
+    private static boolean predictOneFlow(String line, String domainOS) {
+        if (!domainOSModel.containsKey(domainOS))
+            return false;
+        else {
+            try {
+                Classifier classifier = domainOSModel.get(domainOS);
+                Map<String, Integer> fi = domainOSFeature.get(domainOS);
+                Instances structure = domainOSStruct.get(domainOS);
+                Instance current = getInstance(line, fi, fi.size());
+
+                Instances is = new Instances(structure);
+                is.setClassIndex(is.numAttributes() - 1);
+                is.add(current);
+                current = is.get(is.size() - 1);
+                current.setClassMissing();
+                double[] distribution = classifier.distributionForInstance(current);
+
+                // Adjust the threshold to differentiate false positives
+                double threshold = 0.7; // Adjust this value as needed
+
+                if (distribution[1] > threshold) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
+
+    // Existing code...
+
 }
+
