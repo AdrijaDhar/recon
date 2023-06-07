@@ -110,6 +110,33 @@ public class TrainModelByDomainOS {
 		}
 
 	}
+	public static void trainOneDomain(String jsonDataPathRelative, String classifierName, int thresholdFrequency, Info info) {
+		MetaEvaluationMeasures mem = new MetaEvaluationMeasures();
+		mem.info = info;
+		long t1 = System.nanoTime();
+		TrainingData trainingData = populateTrainingSet(jsonDataPathRelative, thresholdFrequency, mem);
+		long t2 = System.nanoTime();
+		mem.populatingTime = (t2 - t1) / 10e8;
+	
+		try {
+			Classifier classifier = getClassifier(classifierName);
+			classifier.buildClassifier(trainingData.trainingInstances);
+			mem = evaluateClassifier(classifier, trainingData.trainingInstances, mem);
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.exit(-1);
+		}
+	
+		// Save the trained classifier
+		String domainOS = mem.info.domainOS;
+		String classifierFilePath = RConfig.classifiersFolder + domainOS + "_" + classifierName + ".model";
+		saveClassifier(classifier, classifierFilePath);
+	
+		// Save evaluation results
+		String evaluationFilePath = RConfig.evaluationFolder + domainOS + "_" + classifierName + ".json";
+		saveEvaluationResults(mem, evaluationFilePath);
+	}
+	
 
 	/**
 	 * Train a classifier given the name of a tracker domain
@@ -123,7 +150,7 @@ public class TrainModelByDomainOS {
 	 * @param info
 	 *            - description of the training dataset for a domain_os
 	 */
-	public static void trainOneDomain(String jsonDataPathRelative,
+	/*public static void trainOneDomain(String jsonDataPathRelative,
 			String classifierName, int thresholdFrequency, Info info) {
 		MetaEvaluationMeasures mem = new MetaEvaluationMeasures();
 		mem.info = info;
@@ -144,7 +171,7 @@ public class TrainModelByDomainOS {
 			System.exit(-1);
 		}
 	}
-
+*/
 	@SuppressWarnings("unchecked")
 	public static TrainingData populateTrainingSet(String jsonFilePathRelative,
 			int thresholdFrequency, MetaEvaluationMeasures mem) {
